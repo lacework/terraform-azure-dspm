@@ -75,37 +75,6 @@ A few best practices for organizing Terraform projects:
 ignored by .gitignore
 * `.gitignore` - Critical to ensure that any sensitive information used in tfvars are not checked in to git
 
-
-***Version Support / Documentation***
-
-Hashicorp release frequent patch and minor updates as needed, as well as new major releases of Terraform each year. Although Hashicorp provide solid documentation on how to upgrade between major releases of Terraform, Lacework must contend with the fact that Lacework customers do not all upgrade in a timely manor. For this reason Tech Alliances Team must continue to update documentation with supported versions of Terraform, as well as update CI pipelines to test changes across each supported version. 
-
-***Standard Versioning for Code Snippets***
-All customer facing code snippets should adhere to the standard of using pessimistic version constraint to minor releases. 
-
-```hcl
-module "aws_config" {
-  source  = "lacework/config/aws"
-  version = "~> 0.1"
-}
-```
-```hcl
-module "aws_cloudtrail" {
-  source  = "lacework/cloudtrail/aws"
-  version = "~> 0.1"
-
-  bucket_force_destroy  = true
-  use_existing_iam_role = true
-  iam_role_name         = module.aws_config.iam_role_name
-  iam_role_arn          = module.aws_config.iam_role_arn
-  iam_role_external_id  = module.aws_config.external_id
-}
-```
-
-The example above will work for version 0.1.9 as well as 0.4.0, but will not pull in any major releases such as 1.0.0.
-
-For more information visit [Semantic Versioning 2.0.0](https://semver.org/) 
-
 ## Commit message standard
 
 The format is:
