@@ -59,7 +59,7 @@ module "lacework_azure_dspm" {
   integration_level         = "SUBSCRIPTION"
   regions                   = ["East US", "West US"]
   global_region             = "East US"
-  scanning_subscription_id  = "/subscriptions/e64af596-838e-43c9-9112-d7d53d546e65"
+  scanning_subscription_id  = "/subscriptions/0252a545-04d4-4262-a82c-ceef83344237"
   tags = {
     ExpectedUseThrough = "2030-05"
     CostCenter         = "4700"
