@@ -8,4 +8,6 @@ on:
 jobs:
   call-nightly-workflow:
     uses: lacework/oss-actions/.github/workflows/tf-nightly.yml@main
+    with:
+      tf-versions: '["1.9.0", "1.10.0"]'
     secrets: inherit

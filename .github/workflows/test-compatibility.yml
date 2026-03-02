@@ -10,4 +10,6 @@ on:
 jobs:
   call-test-compat:
     uses: lacework/oss-actions/.github/workflows/tf-test-compatibility.yml@main
+    with:
+      min-version: "1.9"
     secrets: inherit
