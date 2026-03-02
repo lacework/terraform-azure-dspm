@@ -1,4 +1,75 @@
-formatter: "markdown"
+formatter: markdown table
 version: "0.16.0"
+
+sections:
+  show:
+    - requirements
+    - providers
+    - inputs
+    - outputs
+
+content: |-
+  # Terraform Azure DSPM Module
+
+  Terraform module for integrating Azure Data Security Posture Management (DSPM) with Lacework.
+
+  This module creates the necessary Azure resources for DSPM scanning, including:
+  - Lacework cloud account integration
+  - Azure Key Vault for credentials
+  - Service principal for authentication
+  - Storage account for DSPM data
+  - Container App Job for scheduled scanning
+  - Required RBAC role assignments
+
+  ## Creating a Service Principal to Deploy DSPM
+  We suggest creating a new Azure service principal to use specifically for deploying DSPM. You can do so by running the included [`scripts/setup-service-principal.sh`](./scripts/setup-service-principal.sh) script, or by following the steps in the script manually.
+
+  Please note that in order to create the service principal with sufficient permissions, the az cli must be authenticated as a principal with at least the following permissions:
+  * `Microsoft.Authorization/roleAssignments/*`
+  * `Microsoft.Authorization/roleDefinitions/*`
+  * `Microsoft.Graph/Application.ReadWrite.All`
+
+  If you do not wish to create a new service principal, you can authenticate as an Azure user, as long as the user has the necessary permissions listed below.
+
+  The deploying service principal needs the following ARM actions on the scanning subscription:
+  * `Microsoft.App/jobs/*`
+  * `Microsoft.App/managedEnvironments/*`
+  * `Microsoft.Authorization/roleAssignments/*`
+  * `Microsoft.Authorization/roleDefinitions/*`
+  * `Microsoft.Insights/components/*`
+  * `Microsoft.KeyVault/vaults/*`
+  * `Microsoft.KeyVault/locations/deletedVaults/purge/*`
+  * `Microsoft.KeyVault/locations/operationResults/*`
+  * `Microsoft.ManagedIdentity/userAssignedIdentities/*`
+  * `Microsoft.OperationalInsights/workspaces/*`
+  * `Microsoft.OperationalInsights/workspaces/sharedKeys/*`
+  * `Microsoft.Resources/subscriptions/providers/read`
+  * `Microsoft.Resources/subscriptions/resourcegroups/*`
+  * `Microsoft.Storage/storageAccounts/*`
+  * `Microsoft.Storage/storageAccounts/blobServices/*`
+  * `Microsoft.Storage/storageAccounts/listKeys/*`
+
+  And the following Microsoft Graph API permission (application-level, requires admin consent):
+  * `Application.ReadWrite.All`
+
+  ## Usage Examples
+  - [Subscription Level Single Region](./examples/subscription-level-single-region/)
+  - [Subscription Level Multi Region](./examples/subscription-level-multi-region/)
+
+  {{ .Requirements }}
+
+  {{ .Providers }}
+
+  {{ .Inputs }}
+
+  {{ .Outputs }}
+
 output:
   file: README.md
+  mode: replace
+
+settings:
+  anchor: false
+  default: true
+  required: true
+  type: true

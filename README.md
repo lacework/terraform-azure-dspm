@@ -1,36 +1,106 @@
-<a href="https://lacework.com"><img src="https://techally-content.s3-us-west-1.amazonaws.com/public-content/lacework_logo_full.png" width="600"></a>
-
-# terraform-<PROVIDER>-<NAME>
-
-[![GitHub release](https://img.shields.io/github/release/lacework/terraform-<PROVIDER>-<NAME>.svg)](https://github.com/lacework/terraform-<PROVIDER>-<NAME>/releases/)
-[![Codefresh build status]( https://g.codefresh.io/api/badges/pipeline/lacework/terraform-modules%2Ftest-compatibility?type=cf-1&key=eyJhbGciOiJIUzI1NiJ9.NWVmNTAxOGU4Y2FjOGQzYTkxYjg3ZDEx.RJ3DEzWmBXrJX7m38iExJ_ntGv4_Ip8VTa-an8gBwBo)]( https://g.codefresh.io/pipelines/edit/new/builds?id=607e25e6728f5a6fba30431b&pipeline=test-compatibility&projects=terraform-modules&projectId=607db54b728f5a5f8930405d)
-
-A Terraform Module to __________________________ with Lacework.
 <!-- BEGIN_TF_DOCS -->
+# Terraform Azure DSPM Module
+
+Terraform module for integrating Azure Data Security Posture Management (DSPM) with Lacework.
+
+This module creates the necessary Azure resources for DSPM scanning, including:
+- Lacework cloud account integration
+- Azure Key Vault for credentials
+- Service principal for authentication
+- Storage account for DSPM data
+- Container App Job for scheduled scanning
+- Required RBAC role assignments
+
+## Creating a Service Principal to Deploy DSPM
+We suggest creating a new Azure service principal to use specifically for deploying DSPM. You can do so by running the included [`scripts/setup-service-principal.sh`](./scripts/setup-service-principal.sh) script, or by following the steps in the script manually.
+
+Please note that in order to create the service principal with sufficient permissions, the az cli must be authenticated as a principal with at least the following permissions:
+* `Microsoft.Authorization/roleAssignments/*`
+* `Microsoft.Authorization/roleDefinitions/*`
+* `Microsoft.Graph/Application.ReadWrite.All`
+
+If you do not wish to create a new service principal, you can authenticate as an Azure user, as long as the user has the necessary permissions listed below.
+
+The deploying service principal needs the following ARM actions on the scanning subscription:
+* `Microsoft.App/jobs/*`
+* `Microsoft.App/managedEnvironments/*`
+* `Microsoft.Authorization/roleAssignments/*`
+* `Microsoft.Authorization/roleDefinitions/*`
+* `Microsoft.Insights/components/*`
+* `Microsoft.KeyVault/vaults/*`
+* `Microsoft.KeyVault/locations/deletedVaults/purge/*`
+* `Microsoft.KeyVault/locations/operationResults/*`
+* `Microsoft.ManagedIdentity/userAssignedIdentities/*`
+* `Microsoft.OperationalInsights/workspaces/*`
+* `Microsoft.OperationalInsights/workspaces/sharedKeys/*`
+* `Microsoft.Resources/subscriptions/providers/read`
+* `Microsoft.Resources/subscriptions/resourcegroups/*`
+* `Microsoft.Storage/storageAccounts/*`
+* `Microsoft.Storage/storageAccounts/blobServices/*`
+* `Microsoft.Storage/storageAccounts/listKeys/*`
+
+And the following Microsoft Graph API permission (application-level, requires admin consent):
+* `Application.ReadWrite.All`
+
+## Usage Examples
+- [Subscription Level Single Region](./examples/subscription-level-single-region/)
+- [Subscription Level Multi Region](./examples/subscription-level-multi-region/)
+
 ## Requirements
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.12.31 |
-| <a name="requirement_lacework"></a> [lacework](#requirement\_lacework) | ~> 1.0 |
+| terraform | >= 1.9 |
+| azurerm | >= 3.80 |
+| lacework | ~> 2.2 |
+| time | >= 0.9 |
 
 ## Providers
 
-No providers.
-
-## Modules
-
-No modules.
-
-## Resources
-
-No resources.
+| Name | Version |
+|------|---------|
+| azuread | n/a |
+| azurerm | >= 3.80 |
+| lacework | ~> 2.2 |
+| random | n/a |
+| time | >= 0.9 |
 
 ## Inputs
 
-No inputs.
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| additional\_environment\_variables | Optional list of additional environment variables passed to the task. | <pre>list(object({<br>    name  = string<br>    value = string<br>  }))</pre> | `[]` | no |
+| global\_region | Region for global (shared) resources. Defaults to the first region in var.regions. | `string` | `""` | no |
+| integration\_level | If we are integrating into a subscription or tenant. Valid values are 'SUBSCRIPTION' or 'TENANT' | `string` | n/a | yes |
+| lacework\_hostname | Hostname for the Lacework account (e.g., my-tenant.lacework.net). If not provided, will use the URL associated with the default Lacework CLI profile. | `string` | `""` | no |
+| lacework\_integration\_name | The name of the Lacework cloud account integration. | `string` | `"azure-dspm"` | no |
+| owner\_id | Owner for service account created. Azure recommends having one | `string` | `""` | no |
+| regions | List of Azure regions where DSPM scanners are deployed. | `list(string)` | n/a | yes |
+| resource\_prefix | Prefix for resource names. | `string` | `"forticnapp"` | no |
+| rg\_name | Name suffix for the Azure resource group that will contain all DSPM resources. | `string` | `"dspm-rg"` | no |
+| scanner\_image | Docker image for the DSPM scanner | `string` | `"lacework/dspm-scanner:latest"` | no |
+| scanning\_subscription\_id | SubcriptionId where FortiCNAPP DSPM is deployed. Leave blank to use the current one used by Azure Resource Manager. Show it through `az account show` | `string` | `""` | no |
+| tags | Set of tags which will be added to the resources managed by the module. | `map(string)` | <pre>{<br>  "ManagedBy": "terraform"<br>}</pre> | no |
+| tenant\_id | TenantId where DSPM is deployed | `string` | `""` | no |
 
 ## Outputs
 
-No outputs.
+| Name | Description |
+|------|-------------|
+| dspm\_client\_id | Client ID of our scanner's managed identity |
+| dspm\_identity\_id | Fully qualified resource ID of our scanner's managed identity |
+| dspm\_identity\_resource\_id | The resource ID of the DSPM identity. |
+| dspm\_principal\_id | Principal ID (GUID) of our scanner's managed identity |
+| key\_vault\_id | The ID of the Key Vault storing DSPM secrets. |
+| key\_vault\_secret\_name | The name of the secret in Key Vault containing Lacework credentials. |
+| key\_vault\_uri | The URI of the Key Vault storing DSPM secrets. |
+| lacework\_hostname | Lacework hostname for the integration (e.g., my-tenant.lacework.net). |
+| lacework\_integration\_id | The ID of the Lacework integration. |
+| lacework\_integration\_name | The name of the integration. |
+| resource\_group\_id | ID of the resource group hosting the DSPM scanner |
+| resource\_group\_name | Name of the resource group hosting the DSPM scanner |
+| scanner\_job\_ids | Map of region to scanner job ID. |
+| scanning\_subscription\_id | The subscription where scanning resources are deployed in tenant-level integrations |
+| storage\_account\_name | The blob storage account for DSPM data. |
+| suffix | Suffix used to add uniqueness to resource names. |
 <!-- END_TF_DOCS -->

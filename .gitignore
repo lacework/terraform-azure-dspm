@@ -35,6 +35,7 @@ override.tf.json
 # Credentials Files
 **/credentials.json
 **/*.json
+*.env
 
 # Local testing variables
 *.tfvars

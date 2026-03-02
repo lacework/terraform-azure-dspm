@@ -1,5 +1,6 @@
 terraform {
-  required_version = ">= 1.9"
+  required_version = ">= 1.3"
+
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -8,10 +9,6 @@ terraform {
     lacework = {
       source  = "lacework/lacework"
       version = "~> 2.2"
-    }
-    time = {
-      source  = "hashicorp/time"
-      version = ">= 0.9"
     }
   }
 }
