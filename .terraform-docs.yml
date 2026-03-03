@@ -1,0 +1,47 @@
+formatter: markdown table
+version: "0.16.0"
+
+sections:
+  show:
+    - requirements
+    - providers
+    - inputs
+    - outputs
+
+content: |-
+  # Terraform Azure DSPM Module
+
+  Terraform module for integrating Azure Data Security Posture Management (DSPM) with Lacework.
+
+  This module creates the necessary Azure resources for DSPM scanning, including:
+  - Lacework cloud account integration
+  - Azure Key Vault for credentials
+  - Service principal for authentication
+  - Storage account for DSPM data
+  - Container App Job for scheduled scanning
+  - Required RBAC role assignments
+
+  ## Creating a Service Principal to Deploy DSPM
+  We suggest creating a new Azure service principal to use specifically for deploying DSPM. Please refer to the [`service_principal`](./service_principal/) directory for more information.
+
+  ## Usage Examples
+  - [Subscription Level Single Region](./examples/subscription-level-single-region/)
+  - [Subscription Level Multi Region](./examples/subscription-level-multi-region/)
+
+  {{ .Requirements }}
+
+  {{ .Providers }}
+
+  {{ .Inputs }}
+
+  {{ .Outputs }}
+
+output:
+  file: README.md
+  mode: replace
+
+settings:
+  anchor: false
+  default: true
+  required: true
+  type: true
