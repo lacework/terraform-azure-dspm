@@ -1,5 +1,9 @@
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
   subscription_id = var.scanning_subscription_id != "" ? try(
     regex("^/subscriptions/([A-Za-z0-9-_]+)$", var.scanning_subscription_id)[0],
     var.scanning_subscription_id

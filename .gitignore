@@ -1,8 +1,9 @@
 # Local .terraform directories
 **/.terraform/*
 
-# generated via "make ci"
+# generated via "make ci" or local testing
 examples/**/.terraform.lock.hcl
+service_principal/**/.terraform.lock.hcl
 
 # .tfstate files
 *.tfstate
@@ -36,6 +37,7 @@ override.tf.json
 **/credentials.json
 **/*.json
 *.env
+tmp/**
 
 # Local testing variables
 *.tfvars
