@@ -95,6 +95,7 @@ variable "owner_id" {
 variable "integration_level" {
   type        = string
   description = "If we are integrating into a subscription or tenant. Valid values are 'SUBSCRIPTION' or 'TENANT'"
+  default     = "SUBSCRIPTION"
   validation {
     condition     = upper(var.integration_level) == "SUBSCRIPTION" || upper(var.integration_level) == "TENANT"
     error_message = "Valid values are 'SUBSCRIPTION' or 'TENANT'."
