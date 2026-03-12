@@ -92,6 +92,46 @@ variable "owner_id" {
   }
 }
 
+variable "scan_frequency_hours" {
+  type        = number
+  default     = null
+  description = "How often the DSPM scanner runs, in hours. Valid values: 24 (1 day), 72 (3 days), 168 (7 days), 720 (30 days)."
+
+  validation {
+    condition     = var.scan_frequency_hours == null || contains([24, 72, 168, 720], var.scan_frequency_hours)
+    error_message = "scan_frequency_hours must be one of: 24 (1 day), 72 (3 days), 168 (7 days), 720 (30 days)."
+  }
+}
+
+variable "max_file_size_mb" {
+  type        = number
+  default     = null
+  description = "Maximum file size to scan, in megabytes."
+}
+
+variable "datastore_filters" {
+  type = object({
+    filter_mode     = string
+    datastore_names = optional(list(string), [])
+  })
+  default     = null
+  description = "Filter which datastores are scanned. filter_mode must be 'INCLUDE', 'EXCLUDE', or 'ALL'. datastore_names is required for INCLUDE/EXCLUDE and must not be set for ALL."
+
+  validation {
+    condition     = var.datastore_filters == null || contains(["INCLUDE", "EXCLUDE", "ALL"], var.datastore_filters.filter_mode)
+    error_message = "filter_mode must be one of: INCLUDE, EXCLUDE, ALL."
+  }
+
+  validation {
+    condition = var.datastore_filters == null || (
+      var.datastore_filters.filter_mode == "ALL"
+      ? length(var.datastore_filters.datastore_names) == 0
+      : length(var.datastore_filters.datastore_names) > 0
+    )
+    error_message = "datastore_names must not be set when filter_mode is 'ALL', and must contain at least one entry when filter_mode is 'INCLUDE' or 'EXCLUDE'."
+  }
+}
+
 variable "integration_level" {
   type        = string
   description = "If we are integrating into a subscription or tenant. Valid values are 'SUBSCRIPTION' or 'TENANT'"
