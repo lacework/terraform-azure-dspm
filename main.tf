@@ -86,6 +86,15 @@ resource "lacework_integration_azure_dspm" "lacework_cloud_account" {
     client_id     = azuread_service_principal.data_loader.client_id
     client_secret = azuread_service_principal_password.data_loader.value
   }
+  scan_frequency_hours = var.scan_frequency_hours
+  max_file_size_mb     = var.max_file_size_mb
+  dynamic "datastore_filters" {
+    for_each = var.datastore_filters != null ? [var.datastore_filters] : []
+    content {
+      filter_mode     = datastore_filters.value.filter_mode
+      datastore_names = datastore_filters.value.datastore_names
+    }
+  }
 }
 
 /* ----------------- Key Vault -----------------
