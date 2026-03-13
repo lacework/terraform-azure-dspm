@@ -47,7 +47,7 @@ We suggest creating a new Azure service principal to use specifically for deploy
 | integration\_level | If we are integrating into a subscription or tenant. Valid values are 'SUBSCRIPTION' or 'TENANT' | `string` | `"SUBSCRIPTION"` | no |
 | lacework\_hostname | Hostname for the Lacework account (e.g., my-tenant.lacework.net). If not provided, will use the URL associated with the default Lacework CLI profile. | `string` | `""` | no |
 | lacework\_integration\_name | The name of the Lacework cloud account integration. | `string` | `"azure-dspm"` | no |
-| max\_file\_size\_mb | Maximum file size to scan, in megabytes. | `number` | `null` | no |
+| max\_file\_size\_mb | Maximum file size to scan, in megabytes. Valid values: 1 to 50. | `number` | `null` | no |
 | owner\_id | Owner for service account created. Azure recommends having one | `string` | `""` | no |
 | regions | List of Azure regions where DSPM scanners are deployed. | `list(string)` | n/a | yes |
 | resource\_prefix | Prefix for resource names. | `string` | `"forticnapp"` | no |
