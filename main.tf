@@ -229,6 +229,45 @@ resource "azurerm_storage_container" "internal_storage_container" {
   container_access_type = "private"
 }
 
+resource "azurerm_storage_management_policy" "blob_expiration" {
+  storage_account_id = azurerm_storage_account.internal_storage_account.id
+
+  rule {
+    name    = "delete-results-after-7-days"
+    enabled = true
+    filters {
+      blob_types = ["blockBlob"]
+      prefix_match = ["internal/results/"] 
+    }
+
+    actions {
+      base_blob {
+        delete_after_days_since_modification_greater_than = 7
+      }
+      snapshot {
+        delete_after_days_since_creation_greater_than = 7
+      }
+    }
+  }
+  rule {
+    name    = "delete-scratch-after-1-days"
+    enabled = true
+    filters {
+      blob_types = ["blockBlob"]
+      prefix_match = ["internal/scratch/"] 
+    }
+
+    actions {
+      base_blob {
+        delete_after_days_since_modification_greater_than = 1
+      }
+      snapshot {
+        delete_after_days_since_creation_greater_than = 1
+      }
+    }
+  }
+}
+
 # ----------------- Managed Identity -----------------
 resource "azurerm_user_assigned_identity" "scanner_job_identity" {
   depends_on = [azurerm_resource_group.rg]
@@ -312,6 +351,7 @@ resource "azurerm_role_assignment" "cost_mgmt_reader" {
   role_definition_name = "Cost Management Reader"
   principal_id         = azurerm_user_assigned_identity.scanner_job_identity.principal_id
 }
+
 # ----------------- Container App Job -----------------
 resource "azurerm_log_analytics_workspace" "law" {
   for_each   = local.region_keys
@@ -325,7 +365,6 @@ resource "azurerm_log_analytics_workspace" "law" {
 
   tags = var.tags
 }
-
 
 # Add Application Insights for observability
 resource "azurerm_application_insights" "appi" {
