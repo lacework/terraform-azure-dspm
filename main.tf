@@ -20,7 +20,6 @@ data "azurerm_subscription" "current" {
 }
 
 locals {
-  scanner_image            = var.scanner_image
   prefix                   = var.resource_prefix
   suffix                   = random_id.suffix.hex
   global_region            = coalesce(var.global_region, var.regions[0])
@@ -408,7 +407,7 @@ resource "azurerm_container_app_job" "scanner_job" {
   template {
     container {
       name  = "dspm-scanner"
-      image = local.scanner_image
+      image = var.scanner_image
 
       cpu    = 2
       memory = "4Gi"
