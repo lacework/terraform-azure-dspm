@@ -6,9 +6,8 @@ terraform {
       version = ">= 3.80"
     }
     lacework = {
-      source = "lacework/lacework"
-      # TODO: set version to "~> 2.3" once the lacework provider is released
-      version = "99.0.0"
+      source  = "lacework/lacework"
+      version = "~> 2.3"
     }
     time = {
       source  = "hashicorp/time"

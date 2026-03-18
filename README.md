@@ -24,7 +24,7 @@ We suggest creating a new Azure service principal to use specifically for deploy
 |------|---------|
 | terraform | >= 1.9 |
 | azurerm | >= 3.80 |
-| lacework | 99.0.0 |
+| lacework | ~> 2.3 |
 | time | >= 0.9 |
 
 ## Providers
@@ -33,7 +33,7 @@ We suggest creating a new Azure service principal to use specifically for deploy
 |------|---------|
 | azuread | n/a |
 | azurerm | >= 3.80 |
-| lacework | 99.0.0 |
+| lacework | ~> 2.3 |
 | random | n/a |
 | time | >= 0.9 |
 
