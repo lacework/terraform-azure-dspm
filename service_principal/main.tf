@@ -57,7 +57,6 @@ resource "azurerm_role_definition" "dspm_deployment_role" {
       "Microsoft.App/managedEnvironments/*",
       "Microsoft.Authorization/roleAssignments/*",
       "Microsoft.Authorization/roleDefinitions/*",
-      "Microsoft.Insights/components/*",
       "Microsoft.KeyVault/vaults/*",
       "Microsoft.KeyVault/locations/deletedVaults/purge/*",
       "Microsoft.KeyVault/locations/operationResults/*",
