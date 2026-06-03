@@ -245,8 +245,8 @@ resource "azurerm_storage_management_policy" "blob_expiration" {
     name    = "delete-results-after-7-days"
     enabled = true
     filters {
-      blob_types = ["blockBlob"]
-      prefix_match = ["internal/results/"] 
+      blob_types   = ["blockBlob"]
+      prefix_match = ["internal/results/"]
     }
 
     actions {
@@ -262,8 +262,8 @@ resource "azurerm_storage_management_policy" "blob_expiration" {
     name    = "delete-scratch-after-1-days"
     enabled = true
     filters {
-      blob_types = ["blockBlob"]
-      prefix_match = ["internal/scratch/"] 
+      blob_types   = ["blockBlob"]
+      prefix_match = ["internal/scratch/"]
     }
 
     actions {
@@ -429,6 +429,17 @@ resource "azurerm_container_app_job" "scanner_job" {
       env {
         name  = "AZURE_INTEGRATION_LEVEL"
         value = local.integration_level
+      }
+      env {
+        # TENANT-only: comma-separated subscriptions to scan exclusively.
+        # Empty in SUBSCRIPTION mode / when scanning the whole tenant.
+        name  = "AZURE_INCLUDED_SUBSCRIPTIONS"
+        value = join(",", var.included_subscriptions)
+      }
+      env {
+        # TENANT-only: comma-separated subscriptions to exclude from a tenant scan.
+        name  = "AZURE_EXCLUDED_SUBSCRIPTIONS"
+        value = join(",", var.excluded_subscriptions)
       }
       env {
         name  = "RESOURCE_GROUP"

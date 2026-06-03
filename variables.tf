@@ -147,3 +147,29 @@ variable "integration_level" {
     error_message = "Valid values are 'SUBSCRIPTION' or 'TENANT'."
   }
 }
+
+variable "included_subscriptions" {
+  type        = set(string)
+  default     = []
+  description = "OPTIONAL: For TENANT-level integrations, the explicit set of subscriptions to scan (bare GUID or '/subscriptions/<guid>'). When empty, all subscriptions in the tenant are scanned. Mutually exclusive with excluded_subscriptions."
+
+  validation {
+    condition     = length(var.included_subscriptions) == 0 || upper(var.integration_level) == "TENANT"
+    error_message = "included_subscriptions can only be specified when integration_level == 'TENANT'."
+  }
+  validation {
+    condition     = length(var.included_subscriptions) == 0 || length(var.excluded_subscriptions) == 0
+    error_message = "included_subscriptions and excluded_subscriptions are mutually exclusive."
+  }
+}
+
+variable "excluded_subscriptions" {
+  type        = set(string)
+  default     = []
+  description = "OPTIONAL: For TENANT-level integrations, subscriptions to exclude from scanning (bare GUID or '/subscriptions/<guid>'). All other subscriptions in the tenant are scanned. Mutually exclusive with included_subscriptions."
+
+  validation {
+    condition     = length(var.excluded_subscriptions) == 0 || upper(var.integration_level) == "TENANT"
+    error_message = "excluded_subscriptions can only be specified when integration_level == 'TENANT'."
+  }
+}
