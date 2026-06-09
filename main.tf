@@ -62,6 +62,18 @@ locals {
 
   integration_level = upper(var.integration_level)
 
+  # The subscription filter is stored on the integration object (and surfaced on
+  # the DSPM settings page + delivered to the scanner via the config API),
+  # mirroring datastore_filters. An include list takes precedence over an exclude
+  # list; they are mutually exclusive (enforced by variable validation).
+  subscription_filter = length(var.included_subscriptions) > 0 ? {
+    filter_mode      = "INCLUDE"
+    subscription_ids = tolist(var.included_subscriptions)
+    } : (length(var.excluded_subscriptions) > 0 ? {
+      filter_mode      = "EXCLUDE"
+      subscription_ids = tolist(var.excluded_subscriptions)
+  } : null)
+
   version_file   = "${abspath(path.module)}/VERSION"
   module_name    = "terrafrom-azure-dspm"
   module_version = fileexists(local.version_file) ? file(local.version_file) : ""
@@ -79,6 +91,7 @@ resource "random_id" "suffix" {
 resource "lacework_integration_azure_dspm" "lacework_cloud_account" {
   name                = var.lacework_integration_name
   tenant_id           = local.tenant_id
+  integration_level   = local.integration_level
   regions             = var.regions
   storage_account_url = azurerm_storage_account.internal_storage_account.primary_blob_endpoint
   blob_container_name = azurerm_storage_container.internal_storage_container.name
@@ -93,6 +106,13 @@ resource "lacework_integration_azure_dspm" "lacework_cloud_account" {
     content {
       filter_mode     = datastore_filters.value.filter_mode
       datastore_names = datastore_filters.value.datastore_names
+    }
+  }
+  dynamic "subscription_filters" {
+    for_each = local.subscription_filter != null ? [local.subscription_filter] : []
+    content {
+      filter_mode      = subscription_filters.value.filter_mode
+      subscription_ids = subscription_filters.value.subscription_ids
     }
   }
 }
@@ -427,19 +447,15 @@ resource "azurerm_container_app_job" "scanner_job" {
         value = local.tenant_id
       }
       env {
+        # The scanner still needs the integration level at deploy time to decide
+        # whether to enumerate the whole tenant. The included/excluded
+        # subscriptions are NOT passed as env vars: they are stored on the
+        # integration object and delivered to the scanner via the config API
+        # (PROPS.DSPM.SUBSCRIPTION_FILTERS), mirroring datastore_filters. The
+        # AZURE_INCLUDED/EXCLUDED_SUBSCRIPTIONS env vars remain supported by the
+        # scanner only as an override.
         name  = "AZURE_INTEGRATION_LEVEL"
         value = local.integration_level
-      }
-      env {
-        # TENANT-only: comma-separated subscriptions to scan exclusively.
-        # Empty in SUBSCRIPTION mode / when scanning the whole tenant.
-        name  = "AZURE_INCLUDED_SUBSCRIPTIONS"
-        value = join(",", var.included_subscriptions)
-      }
-      env {
-        # TENANT-only: comma-separated subscriptions to exclude from a tenant scan.
-        name  = "AZURE_EXCLUDED_SUBSCRIPTIONS"
-        value = join(",", var.excluded_subscriptions)
       }
       env {
         name  = "RESOURCE_GROUP"
