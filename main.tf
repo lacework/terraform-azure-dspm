@@ -452,8 +452,8 @@ resource "azurerm_container_app_job" "scanner_job" {
         # subscriptions are NOT passed as env vars: they are stored on the
         # integration object and delivered to the scanner via the config API
         # (PROPS.DSPM.SUBSCRIPTION_FILTERS), mirroring datastore_filters. The
-        # AZURE_INCLUDED/EXCLUDED_SUBSCRIPTIONS env vars remain supported by the
-        # scanner only as an override.
+        # scanner still honors an OVERRIDE_SUBSCRIPTION_FILTERS env var
+        # ("<MODE>,<id>,<id>") as an override, but the module does not set it.
         name  = "AZURE_INTEGRATION_LEVEL"
         value = local.integration_level
       }
