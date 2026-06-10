@@ -62,10 +62,6 @@ locals {
 
   integration_level = upper(var.integration_level)
 
-  # The subscription filter is stored on the integration object (and surfaced on
-  # the DSPM settings page + delivered to the scanner via the config API),
-  # mirroring datastore_filters. An include list takes precedence over an exclude
-  # list; they are mutually exclusive (enforced by variable validation).
   subscription_filter = length(var.included_subscriptions) > 0 ? {
     filter_mode      = "INCLUDE"
     subscription_ids = tolist(var.included_subscriptions)
@@ -382,10 +378,6 @@ resource "azurerm_role_assignment" "cost_mgmt_reader" {
 }
 
 # ----------------- Container App Job -----------------
-# Single workspace shared by all per-region Container App Environments.
-# Container Apps supports cross-region workspace references, so we keep one
-# workspace in global_region to limit exposure to per-region
-# Microsoft.OperationalInsights restrictions.
 resource "azurerm_log_analytics_workspace" "law" {
   depends_on = [azurerm_resource_group.rg]
 
@@ -447,13 +439,6 @@ resource "azurerm_container_app_job" "scanner_job" {
         value = local.tenant_id
       }
       env {
-        # The scanner still needs the integration level at deploy time to decide
-        # whether to enumerate the whole tenant. The included/excluded
-        # subscriptions are NOT passed as env vars: they are stored on the
-        # integration object and delivered to the scanner via the config API
-        # (PROPS.DSPM.SUBSCRIPTION_FILTERS), mirroring datastore_filters. The
-        # scanner still honors an OVERRIDE_SUBSCRIPTION_FILTERS env var
-        # ("<MODE>,<id>,<id>") as an override, but the module does not set it.
         name  = "AZURE_INTEGRATION_LEVEL"
         value = local.integration_level
       }
