@@ -362,29 +362,18 @@ resource "azurerm_role_assignment" "cost_mgmt_reader" {
 }
 
 # ----------------- Container App Job -----------------
+# Single workspace shared by all per-region Container App Environments.
+# Container Apps supports cross-region workspace references, so we keep one
+# workspace in global_region to limit exposure to per-region
+# Microsoft.OperationalInsights restrictions.
 resource "azurerm_log_analytics_workspace" "law" {
-  for_each   = local.region_keys
   depends_on = [azurerm_resource_group.rg]
 
-  name                = "${local.prefix}-law-${each.value}-${local.suffix}"
-  location            = each.key
+  name                = "${local.prefix}-law-${local.suffix}"
+  location            = local.global_region_normalized
   resource_group_name = local.resource_group_name
   sku                 = "PerGB2018"
   retention_in_days   = 30
-
-  tags = var.tags
-}
-
-# Add Application Insights for observability
-resource "azurerm_application_insights" "appi" {
-  for_each   = local.region_keys
-  depends_on = [azurerm_resource_group.rg]
-
-  name                = "${local.prefix}-appi-${each.value}-${local.suffix}"
-  location            = each.key
-  resource_group_name = local.resource_group_name
-  workspace_id        = azurerm_log_analytics_workspace.law[each.key].id
-  application_type    = "web"
 
   tags = var.tags
 }
@@ -396,7 +385,7 @@ resource "azurerm_container_app_environment" "ca-env" {
   name                       = "${local.prefix}-ca-env-${each.value}-${local.suffix}"
   location                   = each.key
   resource_group_name        = local.resource_group_name
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.law[each.key].id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.law.id
 
   tags = var.tags
 }
