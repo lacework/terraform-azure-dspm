@@ -4,6 +4,12 @@ locals {
     regex("^/subscriptions/([A-Za-z0-9-]+)$", var.scanning_subscription_id)[0],
     var.scanning_subscription_id
   )
+
+  is_tenant_level = upper(var.integration_level) == "TENANT"
+  # The tenant root management group's ID equals the tenant ID. The root module
+  # creates the scanner's read role and assignments at this scope for TENANT
+  # integrations, so the deployment SP must be able to manage them here.
+  tenant_root_mg_scope = "/providers/Microsoft.Management/managementGroups/${data.azuread_client_config.current.tenant_id}"
 }
 
 provider "azurerm" {
@@ -81,6 +87,42 @@ resource "azurerm_role_definition" "dspm_deployment_role" {
 resource "azurerm_role_assignment" "dspm_deployment_role_assignment" {
   scope              = data.azurerm_subscription.scanning.id
   role_definition_id = azurerm_role_definition.dspm_deployment_role.role_definition_resource_id
+  principal_id       = azuread_service_principal.dspm_deployment_sp.object_id
+  principal_type     = "ServicePrincipal"
+}
+
+# ── Tenant-level: management-group-scoped Authorization role ─────────────────
+# For TENANT integrations the root module creates the scanner's "Storage Account
+# Reader" role definition and the storage-reader role assignments at the tenant
+# root management group (so future subscriptions are covered automatically). The
+# deployment SP therefore needs to manage role definitions and assignments at
+# that scope, which the subscription-scoped role above cannot grant.
+
+resource "azurerm_role_definition" "dspm_deployment_mg_role" {
+  count = local.is_tenant_level ? 1 : 0
+
+  name        = "FortiCNAPP DSPM Deployment MG (${var.service_principal_name})"
+  scope       = local.tenant_root_mg_scope
+  description = "Permissions to manage role definitions and assignments across the tenant for DSPM deployment"
+
+  permissions {
+    actions = [
+      "Microsoft.Authorization/roleAssignments/*",
+      "Microsoft.Authorization/roleDefinitions/*",
+    ]
+    not_actions = []
+  }
+
+  assignable_scopes = [
+    local.tenant_root_mg_scope,
+  ]
+}
+
+resource "azurerm_role_assignment" "dspm_deployment_mg_role_assignment" {
+  count = local.is_tenant_level ? 1 : 0
+
+  scope              = local.tenant_root_mg_scope
+  role_definition_id = azurerm_role_definition.dspm_deployment_mg_role[0].role_definition_resource_id
   principal_id       = azuread_service_principal.dspm_deployment_sp.object_id
   principal_type     = "ServicePrincipal"
 }

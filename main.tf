@@ -62,6 +62,14 @@ locals {
 
   integration_level = upper(var.integration_level)
 
+  subscription_filter = length(var.included_subscriptions) > 0 ? {
+    filter_mode      = "INCLUDE"
+    subscription_ids = tolist(var.included_subscriptions)
+    } : (length(var.excluded_subscriptions) > 0 ? {
+      filter_mode      = "EXCLUDE"
+      subscription_ids = tolist(var.excluded_subscriptions)
+  } : null)
+
   version_file   = "${abspath(path.module)}/VERSION"
   module_name    = "terrafrom-azure-dspm"
   module_version = fileexists(local.version_file) ? file(local.version_file) : ""
@@ -79,6 +87,7 @@ resource "random_id" "suffix" {
 resource "lacework_integration_azure_dspm" "lacework_cloud_account" {
   name                = var.lacework_integration_name
   tenant_id           = local.tenant_id
+  integration_level   = local.integration_level
   regions             = var.regions
   storage_account_url = azurerm_storage_account.internal_storage_account.primary_blob_endpoint
   blob_container_name = azurerm_storage_container.internal_storage_container.name
@@ -93,6 +102,13 @@ resource "lacework_integration_azure_dspm" "lacework_cloud_account" {
     content {
       filter_mode     = datastore_filters.value.filter_mode
       datastore_names = datastore_filters.value.datastore_names
+    }
+  }
+  dynamic "subscription_filters" {
+    for_each = local.subscription_filter != null ? [local.subscription_filter] : []
+    content {
+      filter_mode      = subscription_filters.value.filter_mode
+      subscription_ids = subscription_filters.value.subscription_ids
     }
   }
 }
@@ -245,8 +261,8 @@ resource "azurerm_storage_management_policy" "blob_expiration" {
     name    = "delete-results-after-7-days"
     enabled = true
     filters {
-      blob_types = ["blockBlob"]
-      prefix_match = ["internal/results/"] 
+      blob_types   = ["blockBlob"]
+      prefix_match = ["internal/results/"]
     }
 
     actions {
@@ -262,8 +278,8 @@ resource "azurerm_storage_management_policy" "blob_expiration" {
     name    = "delete-scratch-after-1-days"
     enabled = true
     filters {
-      blob_types = ["blockBlob"]
-      prefix_match = ["internal/scratch/"] 
+      blob_types   = ["blockBlob"]
+      prefix_match = ["internal/scratch/"]
     }
 
     actions {

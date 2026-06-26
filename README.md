@@ -43,7 +43,9 @@ We suggest creating a new Azure service principal to use specifically for deploy
 |------|-------------|------|---------|:--------:|
 | additional\_environment\_variables | Optional list of additional environment variables passed to the task. | <pre>list(object({<br>    name  = string<br>    value = string<br>  }))</pre> | `[]` | no |
 | datastore\_filters | Filter which datastores are scanned. filter\_mode must be 'INCLUDE', 'EXCLUDE', or 'ALL'. datastore\_names is required for INCLUDE/EXCLUDE and must not be set for ALL. | <pre>object({<br>    filter_mode     = string<br>    datastore_names = optional(list(string), [])<br>  })</pre> | `null` | no |
+| excluded\_subscriptions | OPTIONAL: For TENANT-level integrations, subscriptions to exclude from scanning (bare GUID or '/subscriptions/<guid>'). All other subscriptions in the tenant are scanned. Mutually exclusive with included\_subscriptions. | `set(string)` | `[]` | no |
 | global\_region | Region for global (shared) resources. Defaults to the first region in var.regions. | `string` | `""` | no |
+| included\_subscriptions | OPTIONAL: For TENANT-level integrations, the explicit set of subscriptions to scan (bare GUID or '/subscriptions/<guid>'). When empty, all subscriptions in the tenant are scanned. Mutually exclusive with excluded\_subscriptions. | `set(string)` | `[]` | no |
 | integration\_level | If we are integrating into a subscription or tenant. Valid values are 'SUBSCRIPTION' or 'TENANT' | `string` | `"SUBSCRIPTION"` | no |
 | lacework\_hostname | Hostname for the Lacework account (e.g., my-tenant.lacework.net). If not provided, will use the URL associated with the default Lacework CLI profile. | `string` | `""` | no |
 | lacework\_integration\_name | The name of the Lacework cloud account integration. | `string` | `"azure-dspm"` | no |
